@@ -1,0 +1,18 @@
+#include "/home/terra/TerraNet_v0.1/terra/TerraNet.defs"
+var ushort tValor;            //Declaração da variável que armazenará a temperatura
+loop do
+  await 3s;                   //A cada 3 segundos repete-se o ciclo
+  emit REQ_TEMP();            //Emite o evento que requisita a temperatura
+  tValor = await TEMP;        //Aguarda o valor para armazena-lo na variável tValor
+  emit LEDS(0);               //Desliga os 3 LEDs
+
+  if tValor <= 500 then       //Se a temperatura for menor que 500
+    emit LED1(ON);            //Acende o LED Verde
+  else 
+    if tValor <= 600 then     //Senão e se a temperatura for menor que 600
+     emit LED2(ON);           //Acende o LED Amarelo
+    else                      //Se a temperatura for maior que 600
+      emit LED0(ON);          //Acende o LED Vermelho
+    end
+  end
+end
