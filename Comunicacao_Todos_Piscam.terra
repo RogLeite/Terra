@@ -1,0 +1,38 @@
+#include "/home/terra/TerraNet_v0.1/terra/TerraNet.defs"
+
+pktype usrMsg from radioMsg with
+	var ubyte[4] d8;
+	var ushort[4] d16;
+	var ulong[2] d32;
+end
+var usrMsg pisquem;					//Mensagem a ser mandada
+var ushort tValor;					//16 bits
+
+loop do
+	emit LEDS(0);						//Desliga os três LEDs
+	par/or do							//Executa duas trilhas que colapsam no momento que é recebido o sinal de piscar
+		loop do							//A cada 3 segundos repete-se o ciclo
+			await 3s;
+			emit REQ_TEMP();			//Envia o evento que requisita o valor da temperatura
+			tValor = await TEMP;		//Aguarda o valor para armazená-lo na variável
+			if tValor >= 800 then		//Se a temperatura for maior que 800
+				break;					//Termina o loop, terminando também o par/or
+			end
+		end
+	with
+		pisquem = await RECEIVE;		//Termina o par
+	end
+
+	pisquem.target = BROADCAST;			//Determina que transmitirá para todos os nós adjacentes
+	emit SEND(pisquem);					//Evento que envia o sinal para os vizinhos acenderem		
+	await SEND_DONE;					//Confirmação do envio
+
+	par/or do							//Novo par que pisca por um determinado tempo
+		loop do
+			await 2s;					//A cada 2s, troca-se o estado do LED Vermelho
+			emit LED0(TOGGLE);			//Troca o estado do LED vermelho
+		end
+	with
+		await 30s;						//Permite uma repetição do loop por esse tempo, terminando o par em seguida
+	end
+end
